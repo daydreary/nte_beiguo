@@ -1,13 +1,12 @@
 import time
 import random
 import subprocess
-import shlex
 import os
-import sys
 import json
 import argparse
 from typing import Union, List, Dict, Tuple
 
+from adb_utils import adb_prefix as make_adb_prefix
 from image_detector import detect_once
 
 
@@ -47,18 +46,9 @@ SCREENSHOT_PATH = "screen_tmp.png"
 
 AUTO_INPUT_TEXT = "哈哈哈，还挺好的"
 
-def _adb_executable() -> str:
-    base = script_dir()
-    if sys.platform == "darwin":
-        return os.path.join(base, "platform-tools-mac", "adb")
-    return os.path.join(base, "platform-tools", "adb.exe")
-
 
 def adb_prefix() -> str:
-    adb = _adb_executable()
-    if ADB_SERIAL.strip():
-        return f"{adb} -s {shlex.quote(ADB_SERIAL)}"
-    return adb
+    return make_adb_prefix(ADB_SERIAL)
 
 
 def run_cmd(cmd: str):
