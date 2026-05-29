@@ -15,7 +15,7 @@ from image_detector import detect_once
 # =========================
 # 可选：指定设备序列号（如 emulator-5554 / 127.0.0.1:5555）
 # 不填则使用 adb 当前默认设备
-ADB_SERIAL = "127.0.0.1:16384"
+ADB_SERIAL = ""
 
 # 点击持续时间（毫秒）
 TAP_DURATION_MS = 50
