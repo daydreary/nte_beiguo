@@ -3,6 +3,7 @@ import random
 import subprocess
 import shlex
 import os
+import sys
 import json
 import argparse
 from typing import Union, List, Dict, Tuple
@@ -46,10 +47,18 @@ SCREENSHOT_PATH = "screen_tmp.png"
 
 AUTO_INPUT_TEXT = "哈哈哈，还挺好的"
 
+def _adb_executable() -> str:
+    base = script_dir()
+    if sys.platform == "darwin":
+        return os.path.join(base, "platform-tools-mac", "adb")
+    return os.path.join(base, "platform-tools", "adb.exe")
+
+
 def adb_prefix() -> str:
+    adb = _adb_executable()
     if ADB_SERIAL.strip():
-        return f"adb -s {shlex.quote(ADB_SERIAL)}"
-    return "adb"
+        return f"{adb} -s {shlex.quote(ADB_SERIAL)}"
+    return adb
 
 
 def run_cmd(cmd: str):
@@ -59,15 +68,15 @@ def run_cmd(cmd: str):
 
 def check_adb_ready():
     """检查 adb 和目标设备是否可用"""
-    run_cmd("adb start-server")
+    run_cmd(f"{adb_prefix()} start-server")
     if ADB_SERIAL.strip():
         # 检查指定设备是否在线
-        out = subprocess.check_output("adb devices", shell=True, text=True)
+        out = subprocess.check_output(f"{adb_prefix()} devices", shell=True, text=True)
         if f"{ADB_SERIAL}\tdevice" not in out:
             raise RuntimeError(f"未找到在线设备: {ADB_SERIAL}\n请确认 adb devices 输出。")
     else:
         # 未指定序列号时，至少要有 1 台在线设备
-        out = subprocess.check_output("adb devices", shell=True, text=True)
+        out = subprocess.check_output(f"{adb_prefix()} devices", shell=True, text=True)
         online = [line for line in out.splitlines()[1:] if line.strip().endswith("\tdevice")]
         if not online:
             raise RuntimeError("未检测到在线设备，请先连接模拟器并确保 adb devices 可见。")
@@ -129,17 +138,11 @@ def _escape_adb_input_text(text: str) -> str:
     }
     return "".join(mapping.get(ch, ch) for ch in text)
 
-
 def _clear_input_text(max_chars: int = 200):
     """清空当前聚焦输入框中的已有内容。"""
-    cmd = ["adb"]
-    if ADB_SERIAL.strip():
-        cmd.extend(["-s", ADB_SERIAL])
-    cmd.extend([
-        "shell",
-        f"input keyevent 123; for i in $(seq 1 {max_chars}); do input keyevent 67; done",
-    ])
-    subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # 光标移到末尾 (123)，再连续 DEL (67) 删除；避免 bash seq/for，兼容 Windows 与 Android shell
+    deletes = "; ".join(["input keyevent 67"] * max_chars)
+    run_cmd(f'{adb_prefix()} shell "input keyevent 123; {deletes}"')
 
 
 def input_text(text: str):
