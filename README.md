@@ -9,7 +9,7 @@
 | 依赖 | 说明 |
 |------|------|
 | Python | 3.9 及以上（推荐 3.10+） |
-| ADB | Android Debug Bridge，需已加入系统 PATH |
+| ADB | Android Debug Bridge（项目中已内置） |
 | Android 模拟器 | 已开启 USB 调试，且 `adb devices` 可见 |
 
 ---
@@ -52,7 +52,7 @@ pip3 install -r requirements.txt
 
 ---
 
-## 三、安装与配置 ADB
+## 三、安装与配置 ADB （已内置，可忽略）
 
 ### 安装 ADB
 
