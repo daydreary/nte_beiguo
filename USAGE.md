@@ -8,21 +8,16 @@
 # 1. 克隆或下载项目
 cd /path/to/nte_autobeiguo
 
-# 2. 创建并激活虚拟环境
-python3 -m venv .venv
-source .venv/bin/activate          # macOS / Linux
-# .venv\Scripts\activate           # Windows
-
-# 3. 安装依赖
+# 2. 安装依赖
 pip install -r requirements.txt
 
-# 4. 确认 ADB 已连接模拟器
+# 3. 确认 ADB 已连接模拟器
 adb devices
 
-# 5. 修改 adb_automsg.py 中的配置（见下文）
+# 4. 修改 adb_automsg.py 中的配置（见下文）
 
-# 6. 运行
-python adb_automsg.py
+# 5. 运行
+python3 adb_automsg.py
 ```
 
 ---
@@ -98,7 +93,7 @@ python adb_automsg.py
 ### ADB 设备
 
 ```python
-ADB_SERIAL = "127.0.0.1:16384"
+ADB_SERIAL = ""
 ```
 
 | 值 | 说明 |
@@ -114,11 +109,7 @@ ADB_SERIAL = "127.0.0.1:16384"
 | 夜神模拟器 | `127.0.0.1:62001` |
 | 雷电模拟器 | `127.0.0.1:5555` |
 
-若设备未显示，可尝试：
-
-```bash
-adb connect 127.0.0.1:端口号
-```
+若设备未显示，请打开模拟器adb
 
 ### 固定坐标
 
@@ -174,7 +165,7 @@ AUTO_INPUT_TEXT = "哈哈哈，还挺好的"  # 自动评论内容
 3. 执行截图：
 
 ```bash
-adb -s 127.0.0.1:16384 exec-out screencap -p > screen_tmp.png
+adb exec-out screencap -p > screen_tmp.png
 ```
 
 4. 用图片编辑工具裁剪出**特征明显、尺寸尽量小**的 UI 区域；
@@ -196,7 +187,7 @@ adb -s 127.0.0.1:16384 exec-out screencap -p > screen_tmp.png
 ### 步骤 1：获取截图
 
 ```bash
-adb -s 127.0.0.1:16384 exec-out screencap -p > screen_tmp.png
+adb exec-out screencap -p > screen_tmp.png
 ```
 
 ### 步骤 2：运行检测脚本
@@ -234,7 +225,6 @@ for i, m in enumerate(matches):
 ### 正常运行
 
 ```bash
-source .venv/bin/activate
 python adb_automsg.py
 ```
 
