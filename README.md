@@ -2,40 +2,11 @@
 
 基于 **ADB + OpenCV 模板匹配** 的 Android 模拟器自动化脚本，用于在指定 App 页面中自动完成点赞、收藏、评论等操作。
 
-## 项目结构
-
-```
-nte_autobeiguo/
-├── adb_automsg.py      # 主脚本：ADB 控制、页面识别、自动化流程
-├── image_detector.py   # 图像检测模块：OpenCV 模板匹配
-├── image_template/     # 页面元素模板图（需与模拟器分辨率一致）
-│   ├── send.png
-│   ├── beiguo.png
-│   ├── entry_list.png
-│   ├── like.png
-│   ├── click_like.png
-│   ├── collect.png
-│   ├── input.png
-│   └── submit.png
-├── requirements.txt    # Python 依赖
-├── USAGE.md            # 详细用法说明
-└── README.md
-```
-
-## 工作原理
-
-1. 通过 `adb exec-out screencap` 截取模拟器屏幕；
-2. `image_detector.py` 使用 OpenCV `matchTemplate` 在截图中查找模板图位置；
-3. `adb_automsg.py` 根据识别结果判断当前页面，并执行点击、滑动、输入文本等操作；
-4. 循环运行，直到手动按 `Ctrl + C` 停止。
-
 ## 环境要求
 
 | 依赖 | 说明 |
 |------|------|
 | Python | 3.9 及以上（推荐 3.10+） |
-| OpenCV | `opencv-python` |
-| NumPy | `numpy` |
 | ADB | Android Debug Bridge，需已加入系统 PATH |
 | Android 模拟器 | 已开启 USB 调试，且 `adb devices` 可见 |
 
@@ -66,48 +37,16 @@ python3 --version
 python --version
 ```
 
-### Linux（Ubuntu / Debian）
-
-```bash
-sudo apt update
-sudo apt install python3 python3-pip python3-venv
-
-python3 --version
-```
-
 ---
 
-## 二、配置 Python 虚拟环境与 OpenCV
-
-建议在项目目录下使用虚拟环境，避免污染系统 Python。
+## 二、配置 Python 环境与 OpenCV
 
 ```bash
-# 进入项目目录
-cd /path/to/nte_autobeiguo
-
-# 创建虚拟环境
-python3 -m venv .venv
-
-# 激活虚拟环境
-# macOS / Linux:
-source .venv/bin/activate
-# Windows (PowerShell):
-# .venv\Scripts\Activate.ps1
-# Windows (CMD):
-# .venv\Scripts\activate.bat
-
 # 安装依赖
-pip install --upgrade pip
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 > **说明**：依赖见 `requirements.txt`（`opencv-python`、`numpy`）。若仅需 headless 环境（无 GUI），可将 `opencv-python` 替换为 `opencv-python-headless`。
-
-验证 OpenCV 是否安装成功：
-
-```bash
-python -c "import cv2; import numpy; print('OpenCV', cv2.__version__)"
-```
 
 ---
 
@@ -125,15 +64,9 @@ brew install android-platform-tools
 
 下载 [Android SDK Platform Tools](https://developer.android.com/tools/releases/platform-tools)，解压后将目录加入系统 PATH。
 
-**Linux：**
-
-```bash
-sudo apt install android-tools-adb
-```
-
 ### 连接模拟器
 
-1. 启动 Android 模拟器（如 MuMu、夜神、雷电等）；
+1. 启动 Android 模拟器（如 MuMu、夜神、雷电等）；需要将模拟器设置为1920*1080平板模式；
 2. 在模拟器设置中开启 **USB 调试**；
 3. 确认设备在线：
 
@@ -159,7 +92,7 @@ List of devices attached
 ### 1. ADB 设备地址
 
 ```python
-ADB_SERIAL = "127.0.0.1:16384"  # 改为 adb devices 中显示的设备地址
+ADB_SERIAL = ""  # 改为 adb devices 中显示的设备地址
 ```
 
 留空则使用 `adb` 默认设备：
@@ -199,14 +132,11 @@ AUTO_INPUT_TEXT = "哈哈哈，还挺好的"
 ## 五、运行脚本
 
 ```bash
-# 确保已激活虚拟环境
-source .venv/bin/activate   # macOS / Linux
-
 # 进入项目目录
 cd /path/to/nte_autobeiguo
 
 # 运行主脚本
-python adb_automsg.py
+python3 adb_automsg.py
 ```
 
 运行流程：
@@ -268,6 +198,33 @@ for m in matches:
 - Python 版本建议 3.9 及以上。
 
 ---
+
+## 项目结构
+
+```
+nte_autobeiguo/
+├── adb_automsg.py      # 主脚本：ADB 控制、页面识别、自动化流程
+├── image_detector.py   # 图像检测模块：OpenCV 模板匹配
+├── image_template/     # 页面元素模板图（需与模拟器分辨率一致）
+│   ├── send.png
+│   ├── beiguo.png
+│   ├── entry_list.png
+│   ├── like.png
+│   ├── click_like.png
+│   ├── collect.png
+│   ├── input.png
+│   └── submit.png
+├── requirements.txt    # Python 依赖
+├── USAGE.md            # 详细用法说明
+└── README.md
+```
+
+## 工作原理
+
+1. 通过 `adb exec-out screencap` 截取模拟器屏幕；
+2. `image_detector.py` 使用 OpenCV `matchTemplate` 在截图中查找模板图位置；
+3. `adb_automsg.py` 根据识别结果判断当前页面，并执行点击、滑动、输入文本等操作；
+4. 循环运行，直到手动按 `Ctrl + C` 停止。
 
 ## 免责声明
 
