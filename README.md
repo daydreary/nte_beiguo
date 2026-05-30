@@ -5,8 +5,14 @@
 支持在游戏主界面、活动界面、呗果首页、呗果文章页启动
 
 ## 快速开始
-[查看发布页](https://github.com/daydreary/nte_beiguo/releases)
+1. 安装模拟器和游戏，
+   - 设置为1920*1080平板
+   - 确认模拟器已启动adb（mumu模拟器为设备设置-开发者选项-ADB调试）
+2. [下载可直接运行程序，查看发布页](https://github.com/daydreary/nte_beiguo/releases)
+3. 游戏置于主页面、呗果页面启动即可
 
+
+# 开发配置
 ## 环境要求
 
 | 依赖 | 说明 |
