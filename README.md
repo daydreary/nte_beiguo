@@ -4,6 +4,9 @@
 
 支持在游戏主界面、活动界面、呗果首页、呗果文章页启动
 
+## 快速开始
+[查看发布页](https://github.com/daydreary/nte_beiguo/releases)
+
 ## 环境要求
 
 | 依赖 | 说明 |
