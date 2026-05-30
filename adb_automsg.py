@@ -57,20 +57,48 @@ def run_cmd(cmd: str):
     subprocess.run(cmd, shell=True, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def check_adb_ready():
-    """检查 adb 和目标设备是否可用"""
+def check_adb_ready() -> bool:
+    """检查 adb 和目标设备是否可用，不可用时打印提示并返回 False。"""
     run_cmd(f"{adb_prefix()} start-server")
     if ADB_SERIAL.strip():
         # 检查指定设备是否在线
         out = subprocess.check_output(f"{adb_prefix()} devices", shell=True, text=True)
         if f"{ADB_SERIAL}\tdevice" not in out:
-            raise RuntimeError(f"未找到在线设备: {ADB_SERIAL}\n请确认 adb devices 输出。")
+            print(f"未找到在线设备: {ADB_SERIAL}，请确认 adb devices 输出。")
+            return False
     else:
         # 未指定序列号时，至少要有 1 台在线设备
         out = subprocess.check_output(f"{adb_prefix()} devices", shell=True, text=True)
         online = [line for line in out.splitlines()[1:] if line.strip().endswith("\tdevice")]
         if not online:
-            raise RuntimeError("未检测到在线设备，请先连接模拟器并确保 adb devices 可见。")
+            print("未检测到在线设备，请先连接模拟器并确保 adb devices 可见。")
+            return False
+    return True
+
+
+def release_adb():
+    """释放 ADB 连接，避免占用模拟器的 adb 进程。"""
+    prefix = adb_prefix()
+    serial = ADB_SERIAL.strip()
+    try:
+        if serial:
+            subprocess.run(
+                f"{prefix} disconnect {serial}",
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+    except Exception:
+        pass
+    try:
+        subprocess.run(
+            f"{prefix} kill-server",
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except Exception:
+        pass
 
 
 def tap(pos: tuple[int, int]):
@@ -285,28 +313,42 @@ def back_to_send():
     time.sleep(2)
 
 def main():
-
     print("检查 adb 连接状态...")
-    check_adb_ready()
+    if not check_adb_ready():
+        return
 
     print("3秒后开始执行...")
     time.sleep(3)
     print("脚本已启动，按 Ctrl + C 手动停止。")
 
-    while True:
-        where = where_am_i()
-        print(f"当前所在页面: {where}")
-        if where == "send":
-            go_to_new_page();
-            do_auto_work();
-        elif where == "beiguo":
-            go_to_send();
-        elif where == "entry_list":
-            go_to_beiguo();
-        elif where == "input" or where == "submit":
-            back_to_send();
-        else:
-            go_to_entry_list();        
+    new_list = False
+
+    try:
+        while True:
+            where = where_am_i()
+            print(f"当前所在页面: {where}")
+            if where == "send":
+                if new_list == False:
+                    go_to_new_page()
+                    new_list = True
+                do_auto_work()
+            elif where == "beiguo":
+                new_list = False
+                go_to_send()
+            elif where == "entry_list":
+                new_list = False
+                go_to_beiguo()
+            elif where == "input" or where == "submit":
+                new_list = False
+                back_to_send()
+            else:
+                new_list = False
+                go_to_entry_list()
+    except KeyboardInterrupt:
+        print("\n已停止，正在释放 ADB 连接...")
+        release_adb()
+    finally:
+        input("按任意键退出...")
 
 
 if __name__ == "__main__":
