@@ -1,13 +1,23 @@
 import time
 import random
 import subprocess
-import os
-import json
-import argparse
 from typing import Union, List, Dict, Tuple
 
 from adb_utils import adb_prefix as make_adb_prefix
 from image_detector import detect_once
+from paths import (
+    SCREENSHOT_PATH,
+    TEMPLATE_BEIGUO_PAGE,
+    TEMPLATE_CLICK_LIKE,
+    TEMPLATE_COLLECT,
+    TEMPLATE_ENTRY_LIST,
+    TEMPLATE_INPUT,
+    TEMPLATE_LIKE,
+    TEMPLATE_SEND,
+    TEMPLATE_SUBMIT,
+    screenshot_path,
+    template_path,
+)
 
 
 # =========================
@@ -32,17 +42,8 @@ POS_CLOSE = (1835, 60)
 POS_INPUT_COMPLETE = (1695, 1045)
 POS_INPUT_SEND = (1747, 969)
 
-TEMPLATE_ENTRY_LIST = "image_template/entry_list.png"
-TEMPLATE_LIKE = "image_template/like.png"
-TEMPLATE_CLICK_LIKE = "image_template/click_like.png"
-TEMPLATE_COLLECT = "image_template/collect.png"
-TEMPLATE_INPUT = "image_template/input.png"
-
-TEMPLATE_SEND = "image_template/send.png"
-TEMPLATE_BEIGUO_PAGE = "image_template/beiguo.png"
-TEMPLATE_SUBMIT = "image_template/submit.png"
-
-SCREENSHOT_PATH = "screen_tmp.png"
+POS_BEIGUO_LIST_TYPE = (488, 170)
+POS_BEIGUO_LIST_NEW = (458, 329)
 
 AUTO_INPUT_TEXT = "哈哈哈，还挺好的"
 
@@ -88,11 +89,6 @@ def scroll(pos: tuple[int, int], time : int, distance: int = -300):
     run_cmd(cmd)
 
 
-def script_dir() -> str:
-    """当前脚本所在目录"""
-    return os.path.dirname(os.path.abspath(__file__))
-
-
 def take_screenshot(filename: str = SCREENSHOT_PATH) -> str:
     """
     通过 adb 截取设备屏幕，保存到脚本所在目录。
@@ -100,7 +96,7 @@ def take_screenshot(filename: str = SCREENSHOT_PATH) -> str:
     :param filename: 截图文件名或绝对路径，默认使用 SCREENSHOT_PATH
     :return: 截图的绝对路径
     """
-    save_path = filename if os.path.isabs(filename) else os.path.join(script_dir(), filename)
+    save_path = screenshot_path(filename)
     cmd = f"{adb_prefix()} exec-out screencap -p"
     with open(save_path, "wb") as f:
         subprocess.run(cmd, shell=True, check=True, stdout=f)
@@ -151,31 +147,31 @@ def input_text(text: str):
 def where_am_i() -> str:
     screenshot_where = take_screenshot()
     matches1 = detect_once(
-        template_path=script_dir() + "/" + TEMPLATE_SEND,
+        template_path=template_path(TEMPLATE_SEND),
         screenshot_path=screenshot_where,
         threshold=0.82,
         result_count=1
     )
     matches2 = detect_once(
-        template_path=script_dir() + "/" + TEMPLATE_BEIGUO_PAGE,
+        template_path=template_path(TEMPLATE_BEIGUO_PAGE),
         screenshot_path=screenshot_where,
         threshold=0.82,
         result_count=1
     )
     matches3 = detect_once(
-            template_path=script_dir() + "/" + TEMPLATE_ENTRY_LIST,
+            template_path=template_path(TEMPLATE_ENTRY_LIST),
             screenshot_path=screenshot_where,
             threshold=0.82,
             result_count=1
         )
     matches4 = detect_once(
-            template_path=script_dir() + "/" + TEMPLATE_INPUT,
+            template_path=template_path(TEMPLATE_INPUT),
             screenshot_path=screenshot_where,
             threshold=0.82,
             result_count=1
         )
     matches5 = detect_once(
-            template_path=script_dir() + "/" + TEMPLATE_SUBMIT,
+            template_path=template_path(TEMPLATE_SUBMIT),
             screenshot_path=screenshot_where,
             threshold=0.82,
             result_count=1
@@ -192,13 +188,17 @@ def where_am_i() -> str:
         return "submit"
     return None
 
-def do_auto_work():
-    scroll(POS_SCROLL_CENTER, 1000, -400)
+def go_to_new_page():
+    time.sleep(2)
+    tap(POS_BEIGUO_LIST_TYPE)
+    time.sleep(2)
+    tap(POS_BEIGUO_LIST_NEW)
     time.sleep(2)
 
+def do_auto_work():
     find_item = take_screenshot()
     items = detect_once(
-        template_path=script_dir() + "/" + TEMPLATE_LIKE,
+        template_path=template_path(TEMPLATE_LIKE),
         screenshot_path=find_item,
         threshold=0.82,
         result_count=4
@@ -212,17 +212,17 @@ def do_auto_work():
 
             do_action = take_screenshot()
             do_like = detect_once(
-                template_path=script_dir() + "/" + TEMPLATE_CLICK_LIKE,
+                template_path=template_path(TEMPLATE_CLICK_LIKE),
                 screenshot_path=do_action,
                 threshold=0.82
             )
             do_collect = detect_once(
-                template_path=script_dir() + "/" + TEMPLATE_COLLECT,
+                template_path=template_path(TEMPLATE_COLLECT),
                 screenshot_path=do_action,
                 threshold=0.82
             )
             do_input = detect_once(
-                template_path=script_dir() + "/" + TEMPLATE_INPUT,
+                template_path=template_path(TEMPLATE_INPUT),
                 screenshot_path=do_action,
                 threshold=0.82
             )
@@ -250,6 +250,9 @@ def do_auto_work():
                     
             long_tap(POS_CLOSE, 50)
             time.sleep(2)
+    scroll(POS_SCROLL_CENTER, 1000, -400)
+    time.sleep(2)
+
 
 def go_to_send():
     tap(POS_GO)
@@ -259,7 +262,7 @@ def go_to_beiguo():
     while True:
         screenshot_entry_list = take_screenshot()
         matches = detect_once(
-            template_path=script_dir() + "/" + TEMPLATE_ENTRY_LIST,
+            template_path=template_path(TEMPLATE_ENTRY_LIST),
             screenshot_path=screenshot_entry_list,
             threshold=0.82,
             result_count=1
@@ -294,6 +297,7 @@ def main():
         where = where_am_i()
         print(f"当前所在页面: {where}")
         if where == "send":
+            go_to_new_page();
             do_auto_work();
         elif where == "beiguo":
             go_to_send();
